@@ -24,7 +24,7 @@ rule download_data:
     script:
         "scripts/download_data.py"
 
-rule bwa2_index:
+rule bowtie2_index:
     input:
         fasta=reference_fasta,
     output:
@@ -34,15 +34,17 @@ rule bwa2_index:
     conda:
         "envs/bioinfo.yaml"
     shell:
-    # touching bc there are many output files
         """
-        bwa-mem2 index {input.fasta}
+        set -euo pipefail
+        set -x
+        bowtie2-build {input.fasta} {input.fasta}
         """
-rule bwa2_map:
+
+rule bowtie2_map:
     input:
         pac=reference_fasta.with_suffix(reference_fasta.suffix + ".pac"),
         fastq=lambda wildcards: f"{data_dir}/{wildcards.sample}.fq.gz",
-        index_prefix=rules.bwa2_index.input.fasta,
+        index_prefix=rules.bowtie2_index.input.fasta,
     output:
         "work/mapped/{sample}.sorted.bam",
     resources:
@@ -53,11 +55,11 @@ rule bwa2_map:
         threads=threads
     shell:
         """
-        bwa-mem2 mem -t {params.threads} {input.index_prefix} {input.fastq} | \
+        bowtie2 -x {input.index_prefix} -U {input.fastq} -p {params.threads} | \
         samtools view -Sb - | \
         samtools sort -o {output}
         """
-
+        
 rule count_reads:
     input:
         "work/mapped/{sample}.sorted.bam",

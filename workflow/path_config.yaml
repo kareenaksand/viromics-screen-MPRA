@@ -8,7 +8,7 @@ tools: "tools"
 envs: 
   bioinfo: "envs/bioinfo.yaml"
 dockers:
-  bwa: "quay.io/biocontainers/bwa:0.7.18--he4a0461_0"
+  bowtie2: "quay.io/biocontainers/bowtie2:2.4.5--py38h5a3c231_0"
   samtools: "quay.io/biocontainers/samtools:1.20--h50ea8bc_0"
   fastqc: "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0"
 samples:
@@ -20,4 +20,5 @@ samples:
   - RNA_rep2
   - RNA_rep3
   - RNA_rep4
+
 
