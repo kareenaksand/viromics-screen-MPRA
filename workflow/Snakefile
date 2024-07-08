@@ -8,13 +8,13 @@ reference_fasta = workflow_dir / config["reference_fasta"]
 data_dir = workflow_dir / config["data_dir"]
 samples = config["samples"]
 threads = config.get("threads", 4)
-work_dir = workflow_dir / "work"
+work_dir = workflow_dir / "work_bowtie"
 script_dir = workflow_dir / "scripts"
 work_dir.mkdir(parents=True, exist_ok=True)
 
 rule all:
     input:
-        "work/results/merged_MPRA.tsv.gz"
+        "{work_dir}/results/merged_MPRA.tsv.gz"
 
 rule download_data:
     input:
@@ -46,7 +46,7 @@ rule bowtie2_map:
         fastq=lambda wildcards: f"{data_dir}/{wildcards.sample}.fq.gz",
         index_prefix=rules.bowtie2_index.input.fasta,
     output:
-        "work/mapped/{sample}.sorted.bam",
+        "{work_dir}/mapped/{sample}.sorted.bam",
     resources:
         mem_mb=lambda wildcards, attempt: 8000 * attempt,
     conda:
@@ -62,13 +62,13 @@ rule bowtie2_map:
         
 rule count_reads:
     input:
-        "work/mapped/{sample}.sorted.bam",
+        "{work_dir}/mapped/{sample}.sorted.bam",
     output:
-        "work/counts/{sample}.coverage.tsv.gz",
+        "{work_dir}/counts/{sample}.coverage.tsv.gz",
     conda:
         "envs/bioinfo.yaml"
     log:
-        "work/logs/count_reads/{sample}.log"
+        "{work_dir}/logs/count_reads/{sample}.log"
     shell:
         """
         samtools coverage {input} | gzip > {output}
@@ -78,9 +78,9 @@ import pandas as pd
 
 rule aggregate_counts:
     input:
-        expand("work/counts/{sample}.coverage.tsv.gz", sample=config["samples"]),
+        expand("{work_dir}/counts/{sample}.coverage.tsv.gz", sample=config["samples"], work_dir=config["work_bowtie"]),
     output:
-        "work/results/summary_read_counts.tsv.gz",
+        "{work_dir}/results/summary_read_counts.tsv.gz",
 
     run:
         import pandas as pd
@@ -103,7 +103,7 @@ rule reconstruct_MPRA:
         fasta="reference/TILE_mpra.fa",
         plasmid="reference/reporter_plasmid.gb"
     output:
-        "work/results/reconstructed_MPRA.tsv.gz",
+        "{work_dir}/results/reconstructed_MPRA.tsv.gz",
     conda:
         "envs/bioinfo.yaml"
     shell:
@@ -111,10 +111,10 @@ rule reconstruct_MPRA:
 
 rule merge_MPRA:
     input:
-        "work/results/summary_read_counts.tsv.gz",
-        "work/results/reconstructed_MPRA.tsv.gz"
+        "{work_dir}/results/summary_read_counts.tsv.gz",
+        "{work_dir}/results/reconstructed_MPRA.tsv.gz"
     output:
-        "work/results/merged_MPRA.tsv.gz"
+        "{work_dir}/results/merged_MPRA.tsv.gz"
     run:
         import pandas as pd
         counts = pd.read_csv(input[0], sep="\t")

@@ -5,6 +5,7 @@ envs: "envs"
 base: "outputs"
 scripts: "scripts"
 tools: "tools"
+work_dir: "work_bowtie"
 envs: 
   bioinfo: "envs/bioinfo.yaml"
 dockers:
