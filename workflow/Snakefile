@@ -78,7 +78,7 @@ import pandas as pd
 
 rule aggregate_counts:
     input:
-        expand("{work_dir}/counts/{sample}.coverage.tsv.gz", sample=config["samples"], work_dir=config["work_bowtie"]),
+        expand("{work_dir}/counts/{sample}.coverage.tsv.gz", sample=config["samples"], work_dir=config["work_dir"]),
     output:
         "{work_dir}/results/summary_read_counts.tsv.gz",
 
